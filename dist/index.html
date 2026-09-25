@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090b12" />
+    <meta name="description" content="A simple Lucent distribution calculator for Throne and Liberty parties." />
+    <title>Lucent Split Calculator</title>
+    <link rel="icon" type="image/png" href="fish-coin-logo.png" />
+    <style>
+      :root { color-scheme:dark; --bg:#0b0714; --surface:#160f26; --surface-2:#1e1535; --line:rgba(190,151,255,.14); --line-strong:rgba(198,164,255,.3); --text:#f8f5ff; --muted:#a59bb5; --violet:#b47aff; --violet-bright:#c99aff; --purple:#7139d8; }
+      * { box-sizing: border-box; }
+      html { min-width: 320px; background: var(--bg); }
+      body { margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--text); background:radial-gradient(circle at 78% 8%,rgba(138,67,245,.24),transparent 29rem),radial-gradient(circle at 12% 95%,rgba(91,42,172,.18),transparent 30rem),var(--bg); }
+      button,input { font:inherit; }
+      button:focus-visible,input:focus-visible { outline:2px solid var(--violet); outline-offset:2px; }
+      .page { width:min(1050px,100%); margin:0 auto; padding:28px 24px 48px; }
+      .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+      .brand-logo { width:52px; height:52px; flex:0 0 auto; object-fit:contain; filter:drop-shadow(0 8px 18px rgba(118,55,219,.28)); }
+      .brand strong { display:block; font-size:1rem; letter-spacing:-.02em; }
+      .brand span { display:block; margin-top:2px; color:var(--muted); font-size:.8rem; }
+      .calculator { display:grid; grid-template-columns:.8fr 1.2fr; overflow:hidden; border:1px solid var(--line); border-radius:22px; background:rgba(22,15,38,.94); box-shadow:0 28px 80px rgba(4,1,10,.46); }
+      .inputs { padding:30px; border-right:1px solid var(--line); }
+      .results { padding:30px; min-width:0; }
+      .eyebrow { margin:0 0 8px; color:var(--violet-bright); font-size:.75rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+      h1 { margin:0 0 9px; font-size:clamp(1.7rem,3vw,2.45rem); line-height:1.04; letter-spacing:-.05em; }
+      .intro { margin:0 0 28px; color:var(--muted); font-size:.9rem; line-height:1.55; }
+      .field { margin-top:18px; }
+      .field label { display:block; margin-bottom:8px; color:#c5c8d1; font-size:.88rem; font-weight:650; }
+      .input-wrap { position:relative; }
+      input { width:100%; height:50px; padding:0 76px 0 14px; border:1px solid var(--line); border-radius:12px; color:var(--text); background:#0e0918; font-size:1rem; font-variant-numeric:tabular-nums; transition:border-color 150ms ease,box-shadow 150ms ease; }
+      input:hover { border-color:var(--line-strong); }
+      input:focus { outline:0; border-color:rgba(170,140,255,.68); box-shadow:0 0 0 4px rgba(170,140,255,.08); }
+      .suffix { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#737b8c; font-size:.78rem; pointer-events:none; }
+      .party-options { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
+      .party-button { height:45px; padding:0; border:1px solid var(--line); border-radius:11px; color:#b5a9c7; background:#0e0918; cursor:pointer; font-weight:750; transition:color 150ms ease,border-color 150ms ease,background 150ms ease,transform 150ms ease; }
+      .party-button:hover { transform:translateY(-1px); border-color:var(--line-strong); color:#e4e5e9; }
+      .party-button.active { color:#fff; border-color:#bd8cff; background:linear-gradient(135deg,#9b5ef0,#6b32cd); box-shadow:0 8px 24px rgba(119,54,217,.25); }
+      .distributable-panel { margin-top:20px; padding:18px; border:1px solid rgba(188,139,255,.26); border-radius:14px; background:linear-gradient(145deg,rgba(157,88,245,.16),rgba(80,35,143,.1)); }
+      .distributable-panel .result-label { min-height:0; color:#b9aacb; }
+      .distributable-panel .result-value { margin-top:8px; color:#eadcff; }
+      .party-panel { margin-bottom:24px; padding:18px; border:1px solid var(--line); border-radius:15px; background:rgba(14,9,24,.5); }
+      .party-panel .result-heading { margin-bottom:13px; }
+      .rates { margin:24px 0 0; padding-top:18px; border-top:1px solid var(--line); color:#747b8c; font-size:.78rem; line-height:1.55; }
+      .result-heading { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:20px; }
+      .result-heading h2 { margin:0; font-size:1.15rem; letter-spacing:-.025em; }
+      .people-pill { padding:6px 9px; border:1px solid rgba(180,122,255,.28); border-radius:999px; color:#cba5ff; background:rgba(180,122,255,.09); font-size:.75rem; font-weight:700; white-space:nowrap; }
+      .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      .result-card { padding:18px; border:1px solid var(--line); border-radius:14px; background:rgba(14,9,24,.56); }
+      .result-card.highlight { border-color:rgba(183,125,255,.28); background:linear-gradient(145deg,rgba(158,88,245,.14),rgba(14,9,24,.56)); }
+      .result-label { display:block; min-height:38px; color:#818898; font-size:.79rem; line-height:1.45; }
+      .result-value { display:block; margin-top:12px; color:#f8f5ee; font-size:clamp(1.25rem,3vw,1.9rem); font-weight:800; letter-spacing:-.045em; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+      .result-card.highlight .result-value { color:#ebdcff; }
+      .result-value small { color:#747b8c; font-size:.7rem; font-weight:700; letter-spacing:0; }
+      .guild-block { margin-top:12px; padding:19px; border:1px solid var(--line); border-radius:15px; background:var(--surface-2); }
+      .guild-block h3 { margin:0 0 16px; font-size:.9rem; letter-spacing:-.01em; }
+      .guild-rows { display:grid; gap:9px; }
+      .guild-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center; padding:13px 14px; border-radius:11px; background:rgba(14,9,24,.62); }
+      .guild-row span:first-child { color:#a6abb7; font-size:.82rem; line-height:1.4; }
+      .guild-value { color:#e5d8ff; font-size:1rem; font-weight:780; font-variant-numeric:tabular-nums; text-align:right; }
+      .guild-value small { color:#72798a; font-size:.66rem; }
+      .formula { margin:16px 0 0; color:#747b8c; font-size:.76rem; line-height:1.55; }
+      .error { display:none; margin-top:14px; padding:11px 12px; color:#ffb2b8; border:1px solid rgba(255,125,138,.22); border-radius:10px; background:rgba(255,125,138,.07); font-size:.8rem; }
+      .error.show { display:block; }
+      @media (max-width:760px) { .page{padding:18px 14px 32px}.brand{margin:0 4px 18px}.calculator{grid-template-columns:1fr}.inputs{padding:23px 18px;border-right:0;border-bottom:1px solid var(--line)}.results{padding:23px 18px}.intro{margin-bottom:22px} }
+      @media (max-width:460px) { .summary-grid{grid-template-columns:1fr}.result-label{min-height:0}.guild-row{grid-template-columns:1fr;gap:7px}.guild-value{text-align:left} }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after{transition:none!important} }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="brand"><img class="brand-logo" src="fish-coin-logo.png" alt="Purple fish chasing a golden coin" /><div><strong>Lucent Split</strong><span>Guild calculator</span></div></header>
+      <section class="calculator" aria-labelledby="page-title">
+        <div class="inputs">
+          <p class="eyebrow">Calculator</p>
+          <h1 id="page-title">Lucent distribution</h1>
+          <p class="intro">Enter the sale details and select how many people share the drop.</p>
+          <div class="field"><label for="salePrice">Auction House price</label><div class="input-wrap"><input id="salePrice" type="number" min="0" step="1" inputmode="numeric" value="6000" /><span class="suffix">Lucent</span></div></div>
+          <div class="field"><label for="sealCost">Seal cost</label><div class="input-wrap"><input id="sealCost" type="number" min="0" step="1" inputmode="numeric" value="300" /><span class="suffix">Lucent</span></div></div>
+          <div class="distributable-panel">
+            <span class="result-label">Distributable Lucent</span>
+            <span id="distributable" class="result-value">4,380 <small>L</small></span>
+          </div>
+          <p class="rates">Uses a 22% Auction House deduction.</p>
+          <div id="error" class="error" role="status"></div>
+        </div>
+        <div class="results" aria-live="polite">
+          <div class="party-panel">
+            <div class="result-heading"><h2>Amount of people</h2><span id="peoplePill" class="people-pill">6 people</span></div>
+            <div class="party-options" role="group" aria-label="Amount of people">
+              <button class="party-button" type="button" data-count="2">2</button><button class="party-button" type="button" data-count="3">3</button><button class="party-button" type="button" data-count="4">4</button><button class="party-button" type="button" data-count="5">5</button><button class="party-button active" type="button" data-count="6" aria-pressed="true">6</button>
+            </div>
+          </div>
+          <div class="result-heading"><h2>Distribution result</h2></div>
+          <div class="summary-grid" style="grid-template-columns:1fr">
+            <div class="result-card highlight"><span class="result-label">Individual share</span><span id="individualShare" class="result-value">604.137931 <small>L</small></span></div>
+          </div>
+          <div class="guild-block">
+            <h3>Lucent to put up for sale in Guild</h3>
+            <div class="guild-rows">
+              <div class="guild-row"><span id="outsideLabel">If bought outside the party — shared with 6 people</span><span id="outsideAmount" class="guild-value">4,531.034483 <small>L</small></span></div>
+              <div class="guild-row"><span id="insideLabel">If bought within the party — sent to the other 5 people</span><span id="insideAmount" class="guild-value">3,775.862069 <small>L</small></span></div>
+            </div>
+          </div>
+          <p id="formulaNote" class="formula">Divisor for 6 people: 7.25</p>
+        </div>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const SALE_RETENTION=.78,GUILD_RETENTION=.8,salePrice=document.getElementById("salePrice"),sealCost=document.getElementById("sealCost"),error=document.getElementById("error");
+        let people=6;
+        const format=value=>Number(value).toLocaleString("en-US",{maximumFractionDigits:6});
+        const setValue=(id,value)=>{document.getElementById(id).innerHTML=`${format(value)} <small>L</small>`};
+        function calculate(){
+          const price=Math.max(0,Number(salePrice.value)||0),seals=Math.max(0,Number(sealCost.value)||0),distributable=price*SALE_RETENTION-seals;
+          if(distributable<=0){error.textContent="The sale price does not leave any Lucent to distribute after tax and seal cost.";error.classList.add("show");["distributable","individualShare","outsideAmount","insideAmount"].forEach(id=>document.getElementById(id).innerHTML="— <small>L</small>");return null}
+          error.classList.remove("show");
+          const divisor=people+.25*(people-1),share=distributable/divisor,outside=share*people/GUILD_RETENTION,inside=share*(people-1)/GUILD_RETENTION;
+          setValue("distributable",distributable);setValue("individualShare",share);setValue("outsideAmount",outside);setValue("insideAmount",inside);
+          document.getElementById("peoplePill").textContent=`${people} people`;
+          document.getElementById("outsideLabel").textContent=`If bought outside the party — shared with ${people} people`;
+          document.getElementById("insideLabel").textContent=`If bought within the party — sent to the other ${people-1} ${people-1===1?"person":"people"}`;
+          document.getElementById("formulaNote").textContent=`Divisor for ${people} people: ${format(divisor)}`;
+          return{distributable,share,outside,inside,divisor,people};
+        }
+        document.querySelectorAll(".party-button").forEach(button=>button.addEventListener("click",()=>{people=Number(button.dataset.count);document.querySelectorAll(".party-button").forEach(item=>{const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});calculate()}));
+        salePrice.addEventListener("input",calculate);sealCost.addEventListener("input",calculate);calculate();
+        const context=typeof document==="undefined"?undefined:document.modelContext;
+        if(typeof context?.registerTool==="function")void Promise.resolve(context.registerTool({name:"calculate_lucent_distribution",title:"Calculate Lucent distribution",description:"Calculate the distributable Lucent, individual share, and guild-sale amounts for a party.",inputSchema:{type:"object",properties:{auctionHousePrice:{type:"number",minimum:0},sealCost:{type:"number",minimum:0},people:{type:"integer",minimum:2,maximum:6}},required:["auctionHousePrice","sealCost","people"],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:async input=>{if(!input||typeof input!=="object")throw new TypeError("Input must be an object.");if(typeof input.auctionHousePrice!=="number"||input.auctionHousePrice<0)throw new RangeError("Auction House price must be zero or more.");if(typeof input.sealCost!=="number"||input.sealCost<0)throw new RangeError("Seal cost must be zero or more.");if(!Number.isInteger(input.people)||input.people<2||input.people>6)throw new RangeError("People must be a whole number from 2 to 6.");salePrice.value=input.auctionHousePrice;sealCost.value=input.sealCost;people=input.people;document.querySelectorAll(".party-button").forEach(item=>{const active=Number(item.dataset.count)===people;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});const result=calculate();if(!result)throw new RangeError("The sale leaves no Lucent to distribute.");return result}})).catch(()=>{});
+      })();
+    </script>
+  </body>
+</html>
