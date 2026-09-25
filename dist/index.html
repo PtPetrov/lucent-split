@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#090b12" />
+    <meta name="theme-color" content="#0b0714" />
     <meta name="description" content="A simple Lucent distribution calculator for Throne and Liberty parties." />
     <title>Lucent Split Calculator</title>
     <link rel="icon" type="image/png" href="fish-coin-logo.png" />
@@ -12,8 +12,8 @@
       * { box-sizing: border-box; }
       html { min-width: 320px; background: var(--bg); }
       body { margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--text); background:radial-gradient(circle at 78% 8%,rgba(138,67,245,.24),transparent 29rem),radial-gradient(circle at 12% 95%,rgba(91,42,172,.18),transparent 30rem),var(--bg); }
-      button,input { font:inherit; }
-      button:focus-visible,input:focus-visible { outline:2px solid var(--violet); outline-offset:2px; }
+      button,input,select { font:inherit; }
+      button:focus-visible,input:focus-visible,select:focus-visible { outline:2px solid var(--violet); outline-offset:2px; }
       .page { width:min(1050px,100%); margin:0 auto; padding:28px 24px 48px; }
       .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
       .brand-logo { width:52px; height:52px; flex:0 0 auto; object-fit:contain; filter:drop-shadow(0 8px 18px rgba(118,55,219,.28)); }
@@ -28,9 +28,11 @@
       .field { margin-top:18px; }
       .field label { display:block; margin-bottom:8px; color:#c5c8d1; font-size:.88rem; font-weight:650; }
       .input-wrap { position:relative; }
-      input { width:100%; height:50px; padding:0 76px 0 14px; border:1px solid var(--line); border-radius:12px; color:var(--text); background:#0e0918; font-size:1rem; font-variant-numeric:tabular-nums; transition:border-color 150ms ease,box-shadow 150ms ease; }
-      input:hover { border-color:var(--line-strong); }
-      input:focus { outline:0; border-color:rgba(170,140,255,.68); box-shadow:0 0 0 4px rgba(170,140,255,.08); }
+      input,select { width:100%; height:50px; padding:0 76px 0 14px; border:1px solid var(--line); border-radius:12px; color:var(--text); background:#0e0918; font-size:1rem; font-variant-numeric:tabular-nums; transition:border-color 150ms ease,box-shadow 150ms ease; }
+      input:hover,select:hover { border-color:var(--line-strong); }
+      input:focus,select:focus { outline:0; border-color:rgba(170,140,255,.68); box-shadow:0 0 0 4px rgba(170,140,255,.08); }
+      select { appearance:none; cursor:pointer; padding-right:44px; }
+      .select-wrap::after { content:"⌄"; position:absolute; right:15px; top:46%; transform:translateY(-50%); color:#b892ec; font-size:1.15rem; pointer-events:none; }
       .suffix { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#737b8c; font-size:.78rem; pointer-events:none; }
       .party-options { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
       .party-button { height:45px; padding:0; border:1px solid var(--line); border-radius:11px; color:#b5a9c7; background:#0e0918; cursor:pointer; font-weight:750; transition:color 150ms ease,border-color 150ms ease,background 150ms ease,transform 150ms ease; }
@@ -59,7 +61,7 @@
       .guild-row span:first-child { color:#a6abb7; font-size:.82rem; line-height:1.4; }
       .guild-value { color:#e5d8ff; font-size:1rem; font-weight:780; font-variant-numeric:tabular-nums; text-align:right; }
       .guild-value small { color:#72798a; font-size:.66rem; }
-      .formula { margin:16px 0 0; color:#747b8c; font-size:.76rem; line-height:1.55; }
+      .footer { margin-top:18px; color:#766a87; font-size:.75rem; text-align:center; letter-spacing:.02em; }
       .error { display:none; margin-top:14px; padding:11px 12px; color:#ffb2b8; border:1px solid rgba(255,125,138,.22); border-radius:10px; background:rgba(255,125,138,.07); font-size:.8rem; }
       .error.show { display:block; }
       @media (max-width:760px) { .page{padding:18px 14px 32px}.brand{margin:0 4px 18px}.calculator{grid-template-columns:1fr}.inputs{padding:23px 18px;border-right:0;border-bottom:1px solid var(--line)}.results{padding:23px 18px}.intro{margin-bottom:22px} }
@@ -77,11 +79,11 @@
           <p class="intro">Enter the sale details and select how many people share the drop.</p>
           <div class="field"><label for="salePrice">Auction House price</label><div class="input-wrap"><input id="salePrice" type="number" min="0" step="1" inputmode="numeric" value="6000" /><span class="suffix">Lucent</span></div></div>
           <div class="field"><label for="sealCost">Seal cost</label><div class="input-wrap"><input id="sealCost" type="number" min="0" step="1" inputmode="numeric" value="300" /><span class="suffix">Lucent</span></div></div>
+          <div class="field"><label for="saleTax">Auction House tax</label><div class="input-wrap select-wrap"><select id="saleTax"><option value="21">21%</option><option value="22" selected>22%</option><option value="23">23%</option></select></div></div>
           <div class="distributable-panel">
             <span class="result-label">Distributable Lucent</span>
             <span id="distributable" class="result-value">4,380 <small>L</small></span>
           </div>
-          <p class="rates">Uses a 22% Auction House deduction.</p>
           <div id="error" class="error" role="status"></div>
         </div>
         <div class="results" aria-live="polite">
@@ -93,27 +95,27 @@
           </div>
           <div class="result-heading"><h2>Distribution result</h2></div>
           <div class="summary-grid" style="grid-template-columns:1fr">
-            <div class="result-card highlight"><span class="result-label">Individual share</span><span id="individualShare" class="result-value">604.137931 <small>L</small></span></div>
+            <div class="result-card highlight"><span class="result-label">Individual share</span><span id="individualShare" class="result-value">604 <small>L</small></span></div>
           </div>
           <div class="guild-block">
             <h3>Lucent to put up for sale in Guild</h3>
             <div class="guild-rows">
-              <div class="guild-row"><span id="outsideLabel">If bought outside the party — shared with 6 people</span><span id="outsideAmount" class="guild-value">4,531.034483 <small>L</small></span></div>
-              <div class="guild-row"><span id="insideLabel">If bought within the party — sent to the other 5 people</span><span id="insideAmount" class="guild-value">3,775.862069 <small>L</small></span></div>
+              <div class="guild-row"><span id="outsideLabel">If bought outside the party — shared with 6 people</span><span id="outsideAmount" class="guild-value">4,531 <small>L</small></span></div>
+              <div class="guild-row"><span id="insideLabel">If bought within the party — sent to the other 5 people</span><span id="insideAmount" class="guild-value">3,776 <small>L</small></span></div>
             </div>
           </div>
-          <p id="formulaNote" class="formula">Divisor for 6 people: 7.25</p>
         </div>
       </section>
+      <footer class="footer">Made by slackers, for slackers.</footer>
     </main>
     <script>
       (() => {
-        const SALE_RETENTION=.78,GUILD_RETENTION=.8,salePrice=document.getElementById("salePrice"),sealCost=document.getElementById("sealCost"),error=document.getElementById("error");
+        const GUILD_RETENTION=.8,salePrice=document.getElementById("salePrice"),sealCost=document.getElementById("sealCost"),saleTax=document.getElementById("saleTax"),error=document.getElementById("error");
         let people=6;
-        const format=value=>Number(value).toLocaleString("en-US",{maximumFractionDigits:6});
+        const format=value=>Math.round(Number(value)).toLocaleString("en-US",{maximumFractionDigits:0});
         const setValue=(id,value)=>{document.getElementById(id).innerHTML=`${format(value)} <small>L</small>`};
         function calculate(){
-          const price=Math.max(0,Number(salePrice.value)||0),seals=Math.max(0,Number(sealCost.value)||0),distributable=price*SALE_RETENTION-seals;
+          const price=Math.max(0,Number(salePrice.value)||0),seals=Math.max(0,Number(sealCost.value)||0),taxPercent=Number(saleTax.value),saleRetention=1-taxPercent/100,distributable=price*saleRetention-seals;
           if(distributable<=0){error.textContent="The sale price does not leave any Lucent to distribute after tax and seal cost.";error.classList.add("show");["distributable","individualShare","outsideAmount","insideAmount"].forEach(id=>document.getElementById(id).innerHTML="— <small>L</small>");return null}
           error.classList.remove("show");
           const divisor=people+.25*(people-1),share=distributable/divisor,outside=share*people/GUILD_RETENTION,inside=share*(people-1)/GUILD_RETENTION;
@@ -121,13 +123,12 @@
           document.getElementById("peoplePill").textContent=`${people} people`;
           document.getElementById("outsideLabel").textContent=`If bought outside the party — shared with ${people} people`;
           document.getElementById("insideLabel").textContent=`If bought within the party — sent to the other ${people-1} ${people-1===1?"person":"people"}`;
-          document.getElementById("formulaNote").textContent=`Divisor for ${people} people: ${format(divisor)}`;
-          return{distributable,share,outside,inside,divisor,people};
+          return{distributable:Math.round(distributable),share:Math.round(share),outside:Math.round(outside),inside:Math.round(inside),divisor,people,taxPercent};
         }
         document.querySelectorAll(".party-button").forEach(button=>button.addEventListener("click",()=>{people=Number(button.dataset.count);document.querySelectorAll(".party-button").forEach(item=>{const active=item===button;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});calculate()}));
-        salePrice.addEventListener("input",calculate);sealCost.addEventListener("input",calculate);calculate();
+        salePrice.addEventListener("input",calculate);sealCost.addEventListener("input",calculate);saleTax.addEventListener("change",calculate);calculate();
         const context=typeof document==="undefined"?undefined:document.modelContext;
-        if(typeof context?.registerTool==="function")void Promise.resolve(context.registerTool({name:"calculate_lucent_distribution",title:"Calculate Lucent distribution",description:"Calculate the distributable Lucent, individual share, and guild-sale amounts for a party.",inputSchema:{type:"object",properties:{auctionHousePrice:{type:"number",minimum:0},sealCost:{type:"number",minimum:0},people:{type:"integer",minimum:2,maximum:6}},required:["auctionHousePrice","sealCost","people"],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:async input=>{if(!input||typeof input!=="object")throw new TypeError("Input must be an object.");if(typeof input.auctionHousePrice!=="number"||input.auctionHousePrice<0)throw new RangeError("Auction House price must be zero or more.");if(typeof input.sealCost!=="number"||input.sealCost<0)throw new RangeError("Seal cost must be zero or more.");if(!Number.isInteger(input.people)||input.people<2||input.people>6)throw new RangeError("People must be a whole number from 2 to 6.");salePrice.value=input.auctionHousePrice;sealCost.value=input.sealCost;people=input.people;document.querySelectorAll(".party-button").forEach(item=>{const active=Number(item.dataset.count)===people;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});const result=calculate();if(!result)throw new RangeError("The sale leaves no Lucent to distribute.");return result}})).catch(()=>{});
+        if(typeof context?.registerTool==="function")void Promise.resolve(context.registerTool({name:"calculate_lucent_distribution",title:"Calculate Lucent distribution",description:"Calculate the distributable Lucent, individual share, and guild-sale amounts for a party.",inputSchema:{type:"object",properties:{auctionHousePrice:{type:"number",minimum:0},sealCost:{type:"number",minimum:0},taxPercent:{type:"integer",enum:[21,22,23]},people:{type:"integer",minimum:2,maximum:6}},required:["auctionHousePrice","sealCost","taxPercent","people"],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:async input=>{if(!input||typeof input!=="object")throw new TypeError("Input must be an object.");if(typeof input.auctionHousePrice!=="number"||input.auctionHousePrice<0)throw new RangeError("Auction House price must be zero or more.");if(typeof input.sealCost!=="number"||input.sealCost<0)throw new RangeError("Seal cost must be zero or more.");if(![21,22,23].includes(input.taxPercent))throw new RangeError("Tax must be 21%, 22%, or 23%.");if(!Number.isInteger(input.people)||input.people<2||input.people>6)throw new RangeError("People must be a whole number from 2 to 6.");salePrice.value=input.auctionHousePrice;sealCost.value=input.sealCost;saleTax.value=input.taxPercent;people=input.people;document.querySelectorAll(".party-button").forEach(item=>{const active=Number(item.dataset.count)===people;item.classList.toggle("active",active);item.setAttribute("aria-pressed",String(active))});const result=calculate();if(!result)throw new RangeError("The sale leaves no Lucent to distribute.");return result}})).catch(()=>{});
       })();
     </script>
   </body>
